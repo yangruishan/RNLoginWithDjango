@@ -1,5 +1,4 @@
-import React, { Component, PropTypes } from 'react';
-import Dimensions from 'Dimensions';
+import React, { Component } from 'react';
 import {
 	StyleSheet,
 	Image,

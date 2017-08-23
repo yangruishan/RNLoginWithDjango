@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import {
 	StyleSheet,
 	View,
@@ -7,7 +7,7 @@ import {
 	Animated,
 	Easing
 } from 'react-native';
-import { Actions, ActionConst } from 'react-native-router-flux';
+import { Actions } from 'react-native-router-flux';
 
 import arrowImg from '../images/left-arrow.png';
 

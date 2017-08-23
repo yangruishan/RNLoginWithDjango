@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import Dimensions from 'Dimensions';
 import {
 	StyleSheet,
@@ -18,7 +18,6 @@ export default class SignupSection extends Component {
 }
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
-const DEVICE_HEIGHT = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
 	container: {
