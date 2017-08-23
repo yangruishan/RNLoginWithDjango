@@ -8,4 +8,6 @@ Test ReactNative APP to integrate with Django as backend authentication.
 适用相关系统版本号：
 react           16.0.0-alpha.12
 react-native    0.46.4
-Django          1.11.0
+
+Python          3.6.2
+Django          1.11.3
