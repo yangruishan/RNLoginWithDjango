@@ -65,26 +65,26 @@ export default class ButtonSubmit extends Component {
             this.buttonAnimated,
             {
                 toValue: 1,
-                duration: 200,
+                duration: 1,
                 easing: Easing.linear
             }
         ).start();
 
-        setTimeout(() => {
+        /*setTimeout(() => {
             this._onGrow();
-        }, 2000);
+        }, 2000);*/
 
         this.loginAuthenticate();
 
-        setTimeout(() => {
+        /*setTimeout(() => {
             Actions.secondScreen();
             this.setState({isLoading: false});
             this.buttonAnimated.setValue(0);
             this.growAnimated.setValue(0);
-        }, 2300);
+        }, 1);//2300*/
     }
 
-    _onGrow() {
+    /*_onGrow() {
         Animated.timing(
             this.growAnimated,
             {
@@ -93,10 +93,26 @@ export default class ButtonSubmit extends Component {
                 easing: Easing.linear
             }
         ).start();
+    }*/
+
+    authenticatedSucess(){
+        this.setState({isAuthenticated: true});
+        this.setState({isLoading: false});
+        this.buttonAnimated.setValue(0);
+        this.growAnimated.setValue(0);
+        Actions.secondScreen();
+    }
+
+    authenticatedFail(){
+        this.setState({isAuthenticated: false});
+        this.setState({isLoading: false});
+        this.buttonAnimated.setValue(0);
+        this.growAnimated.setValue(0);
+        Actions.loginScreen();
     }
 
     loginAuthenticate() {
-        let serverIP = '192.168.1.124';
+        let serverIP = '192.168.68.203';
         let serverPort = '8000';
         let urlAdmin = 'http://' + serverIP + ':' + serverPort + '/admin/';
         let urlLogin = 'http://' + serverIP + ':' + serverPort + '/admin/login/?next=/admin/';
@@ -109,69 +125,66 @@ export default class ButtonSubmit extends Component {
             credentials: 'omit',
             //headers: {},
         }).then((response) => {
-            console.log(response);
+            //console.log(response);
             //    console.log(response.headers.get('Content-Type'));
             if (response.ok && response.status === 200) { //fetch /admin/成功。接下来需要判断是否是否已经通过/admin/login/?next=/admin/验证过？Django后台是二次验证服务。
                 if (response.headers.has('set-cookie')) { //fetch /admin/成功。由于是首次登录，返回的headers中有'set-cookie'字段
                     adminCookie = response.headers.get('set-cookie');
                     console.log(adminCookie);
                     csrftokenValue = adminCookie.split(";")[0].split("=")[1];
-                    console.log(csrftokenValue);
+                    //console.log(csrftokenValue);
+
+                    //console.log("csrftoken:"+csrftokenValue);
+                    if (csrftokenValue !== null) {
+                        this.setState({csrftoken: csrftokenValue});
+                        //console.log(this.state.csrftoken);
+
+                        let formData = 'csrfmiddlewaretoken=' + csrftokenValue;
+                        formData = formData + '&username=admin&password=xy382847';
+                        formData = formData + '&next=/admin/';
+                        console.log(formData);
+
+                        fetch(urlLogin, {
+                            method: 'POST',
+                            credentials: 'omit',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: formData,
+                        }).then((response) => {
+                            //console.log(response);
+                            if (response.ok && response.status === 200) {
+                                let loginCookie = response.headers.get('set-cookie');
+                                if (loginCookie == null ) { //认证成功，返回的header中不含有'set-cookie'并重定向到用户管理页面。
+                                    this.authenticatedSucess();
+                                } else { //如果用户名、密码认证不通过，返回的header中含有'set-cookie'并重定向到用户登录页面。
+                                    ToastAndroid.show('用户名或者密码错误，请重试！！！', ToastAndroid.TOP);
+                                    this.authenticatedFail();
+                                }
+                            } else { //fetch /admin/login/?next=/admin/ 失败。由于网络或者后台服务问题导致的。
+                                ToastAndroid.show('fetch /admin/login/?next=/admin/ 失败', ToastAndroid.TOP);
+                                this.authenticatedFail();
+                            }
+                            //console.log(authenticated);
+                        }).catch(err => { //二次验证过程中出现错误。
+                            ToastAndroid.show('fetch /admin/login/?next=/admin/ ' + err , ToastAndroid.TOP);
+                            this.authenticatedFail();
+                        })
+                    }
                 } else { //fetch /admin/成功。由于曾经登录过，客户端中有认证cookie，此时请求/admin/时返回的headers中不再有'set-cookie'字段。
-                    this.setState({isAuthenticated: true});
+                    this.authenticatedSucess();
                 }
             } else { //fetch /admin/失败。由于网络或者后台服务问题导致的。
-                this.setState({isAuthenticated: false});
+                ToastAndroid.show('fetch /admin/ 失败！！！', ToastAndroid.TOP);
+                this.authenticatedFail();
             }
-        }).catch(err => {
-            console.log("fetch /admin/ error" + err);
+        }).catch(err => { //网络错误，无法访问服务器后台/admin/资源进行用户验证。
+            //this.buttonAnimated.resetAnimation();
+            ToastAndroid.show('fetch /admin/ 错误  '+ err, ToastAndroid.TOP);
+            this.buttonAnimated.stopAnimation();
+            this.authenticatedFail();
         });
-        console.log(this.state.isAuthenticated);
-
-        console.log("csrftoken:"+csrftokenValue);
-        if (csrftokenValue !== null) {
-            this.setState({csrftoken: csrftokenValue});
-            console.log(this.state.csrftoken);
-
-            let formData = 'csrfmiddlewaretoken=' + csrftokenValue;
-            formData = formData + '&username=admin&password=xy382847';
-            formData = formData + '&next=/admin/';
-            console.log(formData);
-
-            fetch(urlLogin, {
-                method: 'POST',
-                credentials: 'omit',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData,
-            }).then((response) => {
-                //console.log(response);
-                if (response.ok && response.status === 200) {
-                    let loginCookie = response.headers.get('set-cookie');
-                    if (loginCookie == null ) { //认证成功，返回的header中不含有'set-cookie'并重定向到用户管理页面。
-                        this.setState({isAuthenticated: true});
-                        //authenticated = true;
-                        console.log("true");
-                    } else { //如果用户名、密码认证不通过，返回的header中含有'set-cookie'并重定向到用户登录页面。
-                        this.setState({isAuthenticated: false});
-                        //authenticated = false;
-                        console.log("false");
-                    }
-                } else { //fetch /admin/login/?next=/admin/ 失败。由于网络或者后台服务问题导致的。
-                    this.setState({isAuthenticated: false});
-                    //authenticated = false;
-                    console.log("false");
-                }
-                //console.log(authenticated);
-            }).catch(err => { //二次验证过程中出现错误。
-                //authenticated = false;
-                console.log("fetch /admin/login/?next=/admin/ error" + err);
-            })
-        }
-
-        console.log(this.state.isAuthenticated);
-    }
+   }
 
     render() {
         const changeWidth = this.buttonAnimated.interpolate({

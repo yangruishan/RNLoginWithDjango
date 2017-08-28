@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
 	},
 	btnEye: {
     position: 'absolute',
-    top: 55,
-    right: 28,
+    top: 62,
+    right: 30,
   },
   iconEye: {
     width: 25,
