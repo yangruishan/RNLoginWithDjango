@@ -96,11 +96,13 @@ export default class ButtonSubmit extends Component {
     }
 
     loginAuthenticate() {
-        let serverIP = '192.168.1.129';
+        let serverIP = '192.168.1.124';
         let serverPort = '8000';
         let urlAdmin = 'http://' + serverIP + ':' + serverPort + '/admin/';
         let urlLogin = 'http://' + serverIP + ':' + serverPort + '/admin/login/?next=/admin/';
-        let authenticated = false;
+        //let authenticated = false;
+        let adminCookie = null;
+        let csrftokenValue = null;
 
         fetch(urlAdmin, {
             method: 'GET',
@@ -109,69 +111,65 @@ export default class ButtonSubmit extends Component {
         }).then((response) => {
             console.log(response);
             //    console.log(response.headers.get('Content-Type'));
-            if (response.ok && response.status == 200) { //fetch /admin/成功。接下来需要判断是否是否已经通过/admin/login/?next=/admin/验证过？Django后台是二次验证服务。
+            if (response.ok && response.status === 200) { //fetch /admin/成功。接下来需要判断是否是否已经通过/admin/login/?next=/admin/验证过？Django后台是二次验证服务。
                 if (response.headers.has('set-cookie')) { //fetch /admin/成功。由于是首次登录，返回的headers中有'set-cookie'字段
-                    let adminCookie = response.headers.get('set-cookie');
+                    adminCookie = response.headers.get('set-cookie');
                     console.log(adminCookie);
-                    let csrftokenValue = adminCookie.split(";")[0].split("=")[1];
+                    csrftokenValue = adminCookie.split(";")[0].split("=")[1];
                     console.log(csrftokenValue);
-                    if (csrftokenValue) {
-                        this.setState({csrftoken: csrftokenValue});
-                        console.log(this.state.csrftoken);
-
-                        let formData = 'csrfmiddlewaretoken=' + csrftokenValue;
-                        formData = formData + '&username=admin&password=xy382847';
-                        formData = formData + '&next=/admin/';
-                        console.log(formData);
-
-                        fetch(urlLogin, {
-                            method: 'POST',
-                            credentials: 'omit',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: formData,
-                        }).then((response) => {
-                            //console.log(response);
-                            if (response.ok && response.status === 200) {
-                                let loginCookie = response.headers.get('set-cookie');
-                                console.log(authenticated);
-                                if (loginCookie == null ) { //认证成功，返回的header中不含有'set-cookie'并重定向到用户管理页面。
-                                    authenticated = true;
-                                    console.log("true");
-                                } else { //如果用户名、密码认证不通过，返回的header中含有'set-cookie'并重定向到用户登录页面。
-                                    authenticated = false;
-                                    console.log("false");
-                                }
-                            } else { //fetch /admin/login/?next=/admin/ 失败。由于网络或者后台服务问题导致的。
-                                authenticated = false;
-                                console.log("false");
-                            }
-                            console.log(authenticated);
-                        }).catch(err => { //二次验证过程中出现错误。
-                            //authenticated = false;
-                            console.log("fetch /admin/login/?next=/admin/ error" + err);
-                        })
-                    }
                 } else { //fetch /admin/成功。由于曾经登录过，客户端中有认证cookie，此时请求/admin/时返回的headers中不再有'set-cookie'字段。
-                    authenticated = true;
-                    //returnHTML = response.text();
-                    //console.log(returnHTML);
+                    this.setState({isAuthenticated: true});
                 }
             } else { //fetch /admin/失败。由于网络或者后台服务问题导致的。
                 this.setState({isAuthenticated: false});
             }
-        }).then(() => {
-            console.log(authenticated);
-            if (authenticated == true){
-                console.log("认证成功！！！");
-            }else{
-                console.log("认证失败");
-            }
         }).catch(err => {
             console.log("fetch /admin/ error" + err);
         });
-        this.setState({isAuthenticated: authenticated});
+        console.log(this.state.isAuthenticated);
+
+        console.log("csrftoken:"+csrftokenValue);
+        if (csrftokenValue !== null) {
+            this.setState({csrftoken: csrftokenValue});
+            console.log(this.state.csrftoken);
+
+            let formData = 'csrfmiddlewaretoken=' + csrftokenValue;
+            formData = formData + '&username=admin&password=xy382847';
+            formData = formData + '&next=/admin/';
+            console.log(formData);
+
+            fetch(urlLogin, {
+                method: 'POST',
+                credentials: 'omit',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData,
+            }).then((response) => {
+                //console.log(response);
+                if (response.ok && response.status === 200) {
+                    let loginCookie = response.headers.get('set-cookie');
+                    if (loginCookie == null ) { //认证成功，返回的header中不含有'set-cookie'并重定向到用户管理页面。
+                        this.setState({isAuthenticated: true});
+                        //authenticated = true;
+                        console.log("true");
+                    } else { //如果用户名、密码认证不通过，返回的header中含有'set-cookie'并重定向到用户登录页面。
+                        this.setState({isAuthenticated: false});
+                        //authenticated = false;
+                        console.log("false");
+                    }
+                } else { //fetch /admin/login/?next=/admin/ 失败。由于网络或者后台服务问题导致的。
+                    this.setState({isAuthenticated: false});
+                    //authenticated = false;
+                    console.log("false");
+                }
+                //console.log(authenticated);
+            }).catch(err => { //二次验证过程中出现错误。
+                //authenticated = false;
+                console.log("fetch /admin/login/?next=/admin/ error" + err);
+            })
+        }
+
         console.log(this.state.isAuthenticated);
     }
 
