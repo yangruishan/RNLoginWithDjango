@@ -10,8 +10,8 @@ export default class SignupSection extends Component {
 	render() {
 		return (
 			<View style={styles.container}>
-				<Text style={styles.text}>Create Account</Text>
-				<Text style={styles.text}>Forgot Password?</Text>
+				<Text style={styles.text}>创建帐号</Text>
+				<Text style={styles.text}>忘记密码?</Text>
 			</View>
 		);
 	}
