@@ -67,12 +67,14 @@ export default class ButtonSubmit extends Component {
 
         if (loginName.trim() === ''  ){
             ToastAndroid.show('用户名不能为空', ToastAndroid.SHORT);
+            return;
         }else{
             this.setState({userName: loginName});
         }
 
         if (loginPassword.trim() === '' ){
             ToastAndroid.show('密码不能为空', ToastAndroid.SHORT);
+            return;
         }else{
             this.setState({password: loginPassword});
         }

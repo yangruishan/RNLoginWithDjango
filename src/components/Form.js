@@ -26,8 +26,8 @@ export default class Form extends Component {
     }
 
     importItem(item, value){
-        if (value === "") return;
-        console.log(item + '   ' + value);
+        if (value.trim() === "") return;
+        //console.log(item + '   ' + value);
         this.context.changeItem(item, value);
     }
 
@@ -85,7 +85,5 @@ const styles = StyleSheet.create({
 });
 
 Form.contextTypes={
-    currentUserName: PropTypes.string,
-    currentPassword: PropTypes.string,
     changeItem: PropTypes.any,
 };
